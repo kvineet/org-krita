@@ -51,6 +51,13 @@
   :group 'org-krita
   :package-version '(org-krita . "0.2.1"))
 
+(defcustom org-krita-user-template-file nil
+  "Path for the user's krita template"
+  :type 'string
+  :safe #'stringp
+  :group 'org-krita
+  :package-version '(org-krita . "0.2.1"))
+
 (defcustom org-krita-append-ext-kra t
   "Append automatically .kra extension."
   :group 'org-krita
@@ -78,9 +85,10 @@
 (defconst org-krita-dir (file-name-directory load-file-name)
   "Base directory for package.")
 
-(defun org-krita-resource (file)
+(defun org-krita-template-file ()
   "Return full path of a resource FILE."
-  (expand-file-name file (file-name-as-directory (concat org-krita-dir "resources"))))
+  (or org-krita-user-template-file
+      (expand-file-name "template.kra" (file-name-as-directory (concat org-krita-dir "resources")))))
 
 (defun org-krita-export (_path _desc _backend)
   "Export krita canvas _PATH from Org files.
@@ -105,9 +113,10 @@ Argument _BACKEND refers to export backend."
 
 (defun org-krita-make-new-image (output-kra-path &optional width height)
   "Create a new image based on a template at OUTPUT-KRA-PATH."
-  (let ((template (org-krita-resource "template.kra")))
+  (let ((template (org-krita-template-file)))
     ;; TODO: Change image width and height based on provided argument
-    (f-copy template output-kra-path)))
+    (if (not (file-exists-p output-kra-path))
+        (f-copy template output-kra-path))))
 
 (defun org-krita-extract-png (kra-path)
   "Extract png from given KRA-PATH and return data."
